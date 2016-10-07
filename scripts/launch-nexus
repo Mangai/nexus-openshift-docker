@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+export USER_ID=$(id -u)
+export GROUP_ID=$(id -g)
+grep -v ^nexus /etc/passwd > "$HOME/passwd"
+echo "nexus:x:${USER_ID}:${GROUP_ID}:nexus user:${HOME}:/bin/bash" >> "$HOME/passwd"
+export LD_PRELOAD=libnss_wrapper.so
+export NSS_WRAPPER_PASSWD=${HOME}/passwd
+export NSS_WRAPPER_GROUP=/etc/group
+
+# copy config
+mkdir /sonatype-work/conf
+cp /opt/sonatype/nexus/scripts/nexus.xml /sonatype-work/conf/nexus.xml
+
+# fix permissions
+/opt/sonatype/nexus/scripts/fix-permissions /sonatype-work
+
+# start nexus
+/opt/java/bin/java $@
